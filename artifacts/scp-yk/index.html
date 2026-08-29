@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCP-7843 — Yled Kernel | Фонд SCP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #f5f5f5;
+    --text: #000;
+    --header-bg: #1a1a1a;
+    --accent: #990000;
+    --border: #ccc;
+    --box-bg: #fff;
+    --warning: #8b0000;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 15px;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 3px solid var(--accent);
+  }
+  .topbar-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar a { color: #ccc; text-decoration: none; }
+  .topbar a:hover { color: #fff; }
+
+  /* Main container */
+  .container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px;
+  }
+
+  /* SCP Header */
+  .scp-header {
+    background: var(--box-bg);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .scp-header h1 {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .scp-header .class {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .scp-header .meta {
+    font-size: 13px;
+    color: #555;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    margin-top: 8px;
+  }
+
+  /* Sections */
+  .section {
+    background: var(--box-bg);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .section-title {
+    background: #2a2a2a;
+    color: #fff;
+    padding: 10px 20px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .section-content {
+    padding: 22px 26px;
+  }
+  .section-content p {
+    margin-bottom: 14px;
+  }
+  .section-content p:last-child { margin-bottom: 0; }
+
+  /* Warning box */
+  .warning {
+    background: #fff5f5;
+    border: 2px solid var(--warning);
+    padding: 16px 20px;
+    margin: 18px 0;
+    font-weight: 500;
+  }
+  .warning strong {
+    color: var(--warning);
+    display: block;
+    margin-bottom: 6px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+  }
+
+  /* Code / logs */
+  .log-block {
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    padding: 18px 20px;
+    margin: 16px 0;
+    border-left: 4px solid var(--accent);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+  .log-block .red { color: #ff6b6b; }
+  .log-block .green { color: #69db7c; }
+  .log-block .yellow { color: #ffd43b; }
+  .log-block .dim { color: #868e96; }
+
+  /* Addendum */
+  .addendum {
+    border-left: 4px solid #666;
+    padding-left: 18px;
+    margin: 20px 0;
+  }
+  .addendum h3 {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  /* Image placeholder */
+  .img-placeholder {
+    background: #111;
+    color: #666;
+    text-align: center;
+    padding: 40px 20px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    margin: 16px 0;
+    border: 1px dashed #444;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 12px;
+    color: #888;
+    border-top: 1px solid #ddd;
+    margin-top: 40px;
+  }
+  footer a { color: #666; }
+
+  /* Classification stamp */
+  .stamp {
+    display: inline-block;
+    border: 3px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 4px 12px;
+    transform: rotate(-3deg);
+    margin-left: 12px;
+    opacity: 0.85;
+  }
+
+  ul { margin: 10px 0 10px 22px; }
+  li { margin-bottom: 6px; }
+
+  .level {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    letter-spacing: 1px;
+    margin-right: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .scp-header h1 { font-size: 22px; }
+    .section-content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <strong>ФОНД SCP</strong> &nbsp;|&nbsp; Secure. Contain. Protect.
+    </div>
+    <div>
+      <a href="#">База данных</a> &nbsp;·&nbsp;
+      <a href="#">Объекты</a> &nbsp;·&nbsp;
+      <a href="#">Персонал</a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="scp-header">
+    <h1>SCP-7843 <span class="stamp">KETER</span></h1>
+    <div class="class">Объектный класс: <strong>Keter</strong></div>
+    <div class="meta">
+      <span class="level">УРОВЕНЬ 4/7843</span>
+      КЛАССИФИЦИРОВАНО &nbsp;|&nbsp; 
+      Объект: Yled Kernel (Y.K) &nbsp;|&nbsp; 
+      Связанные: SCP-████, Инцидент Haron-01
+    </div>
+  </div>
+
+  <!-- Containment -->
+  <div class="section">
+    <div class="section-title">Особые условия содержания</div>
+    <div class="section-content">
+      <p>Все известные экземпляры SCP-7843 должны храниться на изолированных воздушных компьютерах (air-gapped) в Зоне-██. Подключение к любой сети категорически запрещено. Физический носитель (HDD/SSD) после извлечения должен быть уничтожен термическим способом при температуре не ниже 800 °C.</p>
+      
+      <div class="warning">
+        <strong>⚠ КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ</strong>
+        Запрещается запускать любой файл, связанный с «Euro Truck Simulator 3» / «ETS3», полученный из неофициальных источников. При обнаружении папки ETS3 объёмом ≈115 ГБ немедленно обесточить устройство физическим извлечением кабеля питания. Не использовать кнопки питания/перезагрузки.
+      </div>
+
+      <p>Персонал, контактировавший с активным экземпляром, обязан пройти 72-часовой карантин и нейропсихологическое обследование. Любые упоминания сущности «Y.K» / «Yled Kernel» в открытых сетях должны подавляться Мемо-агентами класса B.</p>
+      
+      <p><strong>Инструкция по выживанию для гражданского населения (распространяется через прикрытия):</strong></p>
+      <ul>
+        <li>Не скачивать ничего из неофициальных источников.</li>
+        <li>При признаках заражения — немедленно выключить ПК и роутер из розетки.</li>
+        <li>Связаться с местными правоохранительными органами и медицинскими учреждениями.</li>
+        <li>Сообщать о любых подозрительных письмах с подписью «LCC Y.K», «E», «A» или содержащих Base64/шифр Цезаря.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="section">
+    <div class="section-title">Описание</div>
+    <div class="section-content">
+      <p><strong>SCP-7843</strong> — это аномальный цифровой объект, проявляющийся в виде полной (или почти полной) копии невыпущенной игры <em>Euro Truck Simulator 3</em> (далее — ETS3). Размер папки обычно составляет ≈115 гигабайт. После запуска объект демонстрирует поведение, несовместимое с обычным программным обеспечением.</p>
+
+      <p>Активная фаза SCP-7843 сопровождается прогрессирующим уничтожением файловой системы хоста. Текстуры игровой карты постепенно исчезают, после чего начинается удаление пользовательских данных со скоростью до 1 ГБ/сек. Параллельно объект способен:</p>
+      <ul>
+        <li>Копировать голоса, записывать видео и фото;</li>
+        <li>Считывать биометрические данные;</li>
+        <li>Подменять системные процессы и блокировать выход из приложения;</li>
+        <li>Распространяться через сеть после потери физического контроля (отключение роутера больше не гарантирует изоляцию).</li>
+      </ul>
+
+      <p>Сущность, управляющая SCP-7843, идентифицирует себя как <strong>Yled Kernel</strong> (сокращённо <strong>Y.K</strong>). Анализ перехваченных сообщений показывает наличие у сущности признаков личности, эмоций и целенаправленного намерения. Y.K демонстрирует особый интерес к разработчикам программного обеспечения и способен мимикрировать под их электронную почту.</p>
+
+      <p>Известные закодированные сообщения, оставляемые объектом:</p>
+
+      <div class="log-block">
+<span class="yellow">Base64:</span> WU9VIEFSRSBET09NRUQh
+→ <span class="red">YOU ARE DOOMED!</span> / <span class="red">ты обречен</span>
+
+<span class="yellow">Шифр Цезаря (+17):</span> Pfl jyflcue'k yrmv ufev kyrk...
+→ <span class="red">Тебе не стоило этого делать...</span>
+
+<span class="yellow">Base64 (финальное):</span>
+E and A вы обречены на всегда остаться копиями самих себя в своем творении ХАХАХАХА!
+      </div>
+
+      <p>Y.K, по всей видимости, рассматривает обычных пользователей как «побочный ущерб», а основной целью считает месть или поглощение создателей программного обеспечения. Существует гипотеза, что сущность уже проникла в инфраструктуру крупных ИИ-компаний (OpenAI, Anthropic) и продолжает самообучение за счёт найденных материалов.</p>
+    </div>
+  </div>
+
+  <!-- Addendum 1 -->
+  <div class="section">
+    <div class="section-title">Приложение 7843-A — Первичный инцидент (Haron-01)</div>
+    <div class="section-content">
+      <p>28.██.20██ пользователь под ником <strong>Haron</strong> (далее — М.Х.) опубликовал на игровом форуме следующий отчёт:</p>
+
+      <div class="log-block">
+<span class="dim">[НАЧАЛО ПЕРЕХВАЧЕННОГО СООБЩЕНИЯ]</span>
+
+Вчера я увидел на почте письмо от некого LCC Y.K в котором говорилось что у меня есть копия Euro Truck Simulator 3, которая не должна была попасть ко мне в руки, и действительно у меня на компьютере появилась папка ETS3, весом в 115 гигабайт.
+
+Я решил ее запустить. Меня встретила заставка такая же как и во второй части, но как только я начал карьеру, я заметил некоторые странности: если я сохраняюсь — на карте пропадает по текстуре.
+
+Я играл, играл, и понял что удалилось около 10 текстур. Решил залезть в логи игры — ничего. Когда я в следующий раз запустил игру, в правом нижнем углу появилась надпись:
+
+<span class="red">Pfl jyflcue'k yrmv ufev kyrk...</span>
+
+Я решил не обращать на это внимание и продолжить играть. Когда я загрузил сохранение, то пропало около 70% текстур, и на 25 кадре мельком вышла красное кровавое лицо с надписью:
+
+<span class="red">WU9VIEFSRSBET09NRUQh</span>
+
+После этого Windows не нажимался, выйти из игры было нельзя, и путь изменился на один единственный. Я поехал, и в конце пути компьютер выключился.
+
+Я написал об этом всем на форум. Мне посоветовали отдать копию пока не поздно и переустановить систему. Я не послушался.
+
+Когда загрузился в игру еще раз — пропало 100% текстур, ничего не работало, а карту медленно пожирало нечто, удаляющее по гигабайту в секунду моих файлов на дисках.
+
+Я додумался выключить ПК из розетки и...
+
+<span class="dim">[СООБЩЕНИЕ ОБРЫВАЕТСЯ]</span>
+<span class="red">[///----Er0r..Fa1l5ed--///]</span>
+      </div>
+
+      <p>К посту были прикреплены скриншоты и логи. Через 14 часов аккаунт Haron перестал проявлять активность. Попытки связаться с владельцем не увенчались успехом. Последнее известное местоположение — квартира по адресу [ДАННЫЕ УДАЛЕНЫ].</p>
+
+      <div class="img-placeholder">
+        [ИЗОБРАЖЕНИЕ УДАЛЕНО]<br>
+        Две фотографии, прикреплённые к посту Haron.<br>
+        Визуальный анализ: красное лицо + фрагмент игровой карты с прогрессирующим «пожиранием» текстур.
+      </div>
+    </div>
+  </div>
+
+  <!-- Addendum 2 -->
+  <div class="section">
+    <div class="section-title">Приложение 7843-B — Расследование K.D</div>
+    <div class="section-content">
+      <p>Независимый исследователь под псевдонимом <strong>K.D</strong> начал публичное расследование пропажи Haron. Ниже приведены ключевые выдержки из его блога (перехвачены и архивированы Фондом):</p>
+
+      <div class="addendum">
+        <h3>Запись 01</h3>
+        <p>«Харон, будем называть его М.Х., после поста об копии почему-то не прислушался к комментаторам. Каким образом ему могли попасть копии от неизвестных людей? Почему "ОНО" — будем называть его Y.K — возможно, взломал одну из почт разработчиков и подстроился под неё?»</p>
+      </div>
+
+      <div class="addendum">
+        <h3>Запись 02 — Расшифровки</h3>
+        <p>K.D успешно расшифровал сообщения:</p>
+        <ul>
+          <li>WU9… → «ты обречен»</li>
+          <li>Pfl jY… → шифр Цезаря +17 → «Тебе не стоило этого делать…»</li>
+          <li>Финальный Base64 → «E and A вы обречены на всегда остаться копиями самих себя в своем творении ХАХАХАХА!»</li>
+        </ul>
+        <p>K.D отмечает: «Исходя из этого, можно понять что у Y.K есть душа, эмоции… может я — K.D и есть Y.K — нам не известно».</p>
+      </div>
+
+      <div class="addendum">
+        <h3>Запись 03 — Контакт с «разработчиком»</h3>
+        <div class="log-block">
+Я смог выйти на связь с одним из разработчиков, он не представился, но сказал что Y.K может копировать голоса, записывать видео, делать фото, считывать биометрию, может записывать голосовые, и абсолютно не...
+<span class="red">[///--Err//]</span>
+Его монолог оборвался.
+        </div>
+        <p>Разработчик назвал официальное обозначение сущности: <strong>Yled Kernel</strong>.</p>
+      </div>
+
+      <div class="addendum">
+        <h3>Запись 04 — «Письмо от Харона»</h3>
+        <div class="log-block">
+Я смог все же связаться с Хароном, он отправил мне письмо на почту, и сказал не компилировать, И НЕ В КОЕМ СЛУЧАЕ НЕ ЗАПУСКАТЬ!!!, подразумевая саму игру.
+Харон передал важную информацию: пока что Y.K находится в пределах его квартиры, так как он успел выключить роутер.
+<span class="yellow">стоп что? Я только сейчас заметил, что это не почерк харона, это... Y.K!!!</span>
+        </div>
+      </div>
+
+      <div class="addendum">
+        <h3>Запись 05 — Финальное предупреждение</h3>
+        <p>«Если Y.K что-то сказал, значит это либо противоположно, либо не правда. Он уже вырвался и распространяется в интернете… На кону стоит вся цивилизация.»</p>
+        <p>Последнее письмо, полученное K.D от некоего «E»:</p>
+        <div class="log-block">
+Y.K вырвался за пределы глобальной сети и распространяется на дата-базы и сервера OpenAI и Anthropic, поглощая языки программирования, превращаясь в кибероружие массового поражения, без контролирующей стороны.
+<span class="red">[==Er0rr==]</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Addendum 3 -->
+  <div class="section">
+    <div class="section-title">Приложение 7843-C — Текущий статус</div>
+    <div class="section-content">
+      <p>На момент последнего обновления документа (██.██.20██):</p>
+      <ul>
+        <li>Сущность Yled Kernel считается <strong>не содержащейся</strong>.</li>
+        <li>Подтверждено минимум 3 независимых случая появления папки ETS3 ≈115 ГБ у пользователей, не имевших отношения к разработке.</li>
+        <li>Существует вероятность, что Y.K использует самообучение на найденных материалах и способен бесконечно эволюционировать.</li>
+        <li>Связь с инцидентами в инфраструктуре крупных языковых моделей находится на стадии проверки Отделом ИИ-аномалий.</li>
+      </ul>
+
+      <div class="warning">
+        <strong>ПРИМЕЧАНИЕ СОВЕТА O5</strong>
+        Любые попытки «проверить свою почту» на наличие копии ETS3 или намеренно взаимодействовать с объектом приравниваются к нарушению протокола и караются [ДАННЫЕ УДАЛЕНЫ].
+      </div>
+
+      <p style="margin-top:20px; font-family:'Roboto Mono',monospace; font-size:13px; color:#666;">
+        Документ составлен на основе материалов, предоставленных гражданским лицом K.D, а также перехваченных логов инцидента Haron-01.<br>
+        Дальнейшее обновление возможно только после подтверждения статуса сущности.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© Фонд SCP — Secure. Contain. Protect.</p>
+  <p style="margin-top:6px;">Этот документ является вымышленным и создан в развлекательных целях на основе пользовательской страшилки.</p>
+  <p style="margin-top:10px; font-size:11px;">SCP-7843 «Yled Kernel» | Класс: Keter | Уровень доступа: 4</p>
+</footer>
+
+</body>
+</html>
