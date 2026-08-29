@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "SCP-7843 Terminal",
+      "hasCanvas": false,
+      "bodyTextLen": 64,
+      "bodyTextHash": "7204dfc65979b4560374568b5a9dd71ad9a3391e36774a4b4c513ecfa1c8beab",
+      "bodyTextPrefix": "FND. SECURE DISPLAY MODEL 17-K · SERIAL 7843 НАЖМИТЕ ПИТАНИЕ I/O",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "SCP-7843 Terminal",
+      "hasCanvas": false,
+      "bodyTextLen": 64,
+      "bodyTextHash": "7204dfc65979b4560374568b5a9dd71ad9a3391e36774a4b4c513ecfa1c8beab",
+      "bodyTextPrefix": "FND. SECURE DISPLAY MODEL 17-K · SERIAL 7843 НАЖМИТЕ ПИТАНИЕ I/O",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
