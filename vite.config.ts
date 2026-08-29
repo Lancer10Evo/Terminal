@@ -151,10 +151,11 @@ export default defineConfig(({ command, isPreview }) => ({
     port: 8080,
     strictPort: true,
   },
-  preview: {
-    host: "127.0.0.1",
-    port: 8081,
-    strictPort: true,
+   preview: {
+    host: "0.0.0.0", // Разрешить внешние запросы
+    port: Number(process.env.PORT) || 8081, // Слушать порт от Render
+    strictPort: false, // Отключить жесткую блокировку порта
+    allowedHosts: true, // Снять блокировку хостов для Vite v8
   },
   resolve: { tsconfigPaths: true },
   plugins: [
